@@ -923,6 +923,7 @@ public class SQLitePlugin extends ReactContextBaseJavaModule {
                 this.mydb = openDatabase(dbname, this.assetFilename, this.openFlags, this.openCbc);
             } catch (Exception e) {
                 FLog.e(TAG, "unexpected error, stopping db thread", e);
+                this.openCbc.error("database access exception");
                 dbrmap.remove(dbname);
                 return;
             }

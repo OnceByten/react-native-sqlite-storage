@@ -13,7 +13,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.content.Context;
+import android.os.Environment;
 import android.util.Base64;
+import android.util.Log;
 
 import java.io.Closeable;
 import java.io.File;
@@ -386,6 +388,8 @@ public class SQLitePlugin extends ReactContextBaseJavaModule {
                     assetFilePath = assetFilePath.startsWith("~/") ? assetFilePath.substring(2) : assetFilePath.substring(1);
                     in = this.getContext().getAssets().open(assetFilePath);
                     FLog.v(TAG, "Located pre-populated DB asset in app bundle subdirectory: " + assetFilePath);
+                } else if(assetFilePath.equals("LEGACYDB")) {
+                    //do nothing - we'll handle this below...
                 } else {
                     File filesDir = this.getContext().getFilesDir();
                     assetFilePath = assetFilePath.startsWith("/") ? assetFilePath.substring(1) : assetFilePath;
@@ -401,15 +405,29 @@ public class SQLitePlugin extends ReactContextBaseJavaModule {
 
             if (dbfile == null) {
                 openFlags = SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.CREATE_IF_NECESSARY;
+
                 dbfile = this.getContext().getDatabasePath(dbname);
 
-                if (!dbfile.exists() && in != null) {
-                    FLog.v(TAG, "Copying pre-populated db asset to destination");
-                    this.createFromAssets(dbname, dbfile, in);
-                }
+                if(assetFilePath.equals("LEGACYDB")) {
+                    openFlags = SQLiteDatabase.OPEN_READWRITE;
+                    //we don't want to create anything as we're looking for an existing db
+                    if(dbfile.exists()) {
+                        Log.d(TAG, "FILE EXISTS");
+                    }
+                    else {
+                        Log.d(TAG, "FILE DOES NOT EXIST");
+                    }
 
-                if (!dbfile.exists()) {
-                    dbfile.getParentFile().mkdirs();
+                }
+                else {
+                    if (!dbfile.exists() && in != null) {
+                        FLog.v(TAG, "Copying pre-populated db asset to destination");
+                        this.createFromAssets(dbname, dbfile, in);
+                    }
+
+                    if (!dbfile.exists()) {
+                        dbfile.getParentFile().mkdirs();
+                    }
                 }
             }
 

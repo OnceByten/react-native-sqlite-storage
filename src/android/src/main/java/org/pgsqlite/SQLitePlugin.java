@@ -416,6 +416,7 @@ public class SQLitePlugin extends ReactContextBaseJavaModule {
                     }
                     else {
                         Log.d(TAG, "FILE DOES NOT EXIST");
+                        throw new Exception("FILE DOES NOT EXIST");
                     }
 
                 }
